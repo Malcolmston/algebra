@@ -25,8 +25,11 @@ export const ALGEBRA: Lib = {
     "<code>Simplify</code> and <code>Expand</code> — canonicalization, like-term collection, algebraic identities and multinomial expansion",
     "<code>Diff</code> — symbolic differentiation with the sum, product, power, quotient and chain rules",
     "<code>Integrate</code> — symbolic antiderivatives of a documented subset, returning an unevaluated <code>Integral</code> rather than a wrong answer",
-    "<code>Solve</code>, <code>Factor</code> and <code>Collect</code> — exact real roots of linear and quadratic equations (perfect-square or symbolic <code>sqrt</code>)",
-    "<code>Eval</code> / <code>Evalf</code> — numeric evaluation to <code>float64</code>. Zero dependencies — pure Go standard library"
+    "Full <b>trigonometry</b> &amp; <b>hyperbolic</b> functions (with inverses and exact special-angle values), <b>complex numbers</b> (<code>I</code>, <code>Conjugate</code>, <code>Re</code>/<code>Im</code>, <code>Arg</code>, Euler folds), and <b>special functions</b> (<code>Gamma</code>, <code>Beta</code>, <code>Erf</code>, <code>Factorial</code>)",
+    "Advanced calculus — <code>Limit</code> (with L'Hôpital), <code>Series</code> (Taylor/Maclaurin), <code>Summation</code> / <code>Product</code>, and richer <code>Integrate</code> (by parts, partial fractions, arctan/asin forms)",
+    "<code>Solve</code> — linear, quadratic, cubic and quartic equations with complex roots, plus <code>SolveSystem</code> for linear systems",
+    "<b>Subpackages</b>: <code>matrix</code> (symbolic linear algebra — det, inverse, eigenvalues, solve <code>Ax=b</code>), <code>ntheory</code> (primes, factorization, modular arithmetic, combinatorics), <code>stats</code> (descriptive statistics &amp; distributions) and <code>physics</code> (SI constants, unit conversion, formulas)",
+    "<code>Eval</code> / <code>Evalf</code> / <code>Evalc</code> — numeric &amp; complex evaluation. Zero dependencies — pure Go standard library"
   ],
   node_code:
 `import sympy

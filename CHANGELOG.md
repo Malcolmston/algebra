@@ -5,7 +5,7 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0] - 2026-07-12
 ### Added
 - Trigonometry completion: `Sec`, `Csc`, `Cot`, the inverse functions `Asin`,
   `Acos`, `Atan`, `Acot`, `Asec`, `Acsc` and the two-argument `Atan2`, with
@@ -30,6 +30,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and `SolveSystem` for linear systems via Gaussian elimination.
 - Parser support for all new function names, the `I`/`oo` constants and postfix
   factorial (`n!`).
+- New `matrix` subpackage: symbolic + numeric linear algebra — `Matrix`/`Vector`,
+  exact `Det`/`Inverse`/`RREF`/`Solve`, `Adjugate`, `Rank`, `Transpose`, `Kron`,
+  `Dot`/`Cross`/`Norm`, and `CharPoly`/`Eigenvalues`.
+- New `ntheory` subpackage: number theory & combinatorics — `GCD`/`LCM`/`ExtendedGCD`,
+  `IsPrime` (deterministic Miller-Rabin), `Factorize`, `PrimesUpTo`, `EulerPhi`,
+  `MobiusMu`, modular arithmetic (`ModPow`/`ModInverse`/`CRT`/`Jacobi`/`DiscreteLog`),
+  `Binomial`/`Factorial`/`Catalan`/`Partition`, and `Fibonacci`/`Lucas`/`Bernoulli`.
+- New `stats` subpackage: descriptive statistics (`Mean`/`Median`/`Variance`/`StdDev`/
+  `Correlation`/`LinearRegression`) and probability distributions (`Normal`, `Binomial`,
+  `Poisson`, `Uniform`, `Exponential`, `StudentT`, `ChiSquared`, `Gamma`).
+- New `physics` subpackage: SI-2019/CODATA physical constants (enumerable via
+  `Constants()`/`Lookup`), unit conversions across length/mass/time/temperature/
+  energy/angle, and common physics formulas (kinematics, relativity, waves, EM).
 
 ## [0.1.0] - 2026-07-12
 ### Added
@@ -50,5 +63,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI: gofmt · vet · build gate a `-race` + coverage run, plus golangci-lint v2,
   govulncheck, cross-compile, dependency review, and VERSION-driven releases.
 
-[Unreleased]: https://github.com/malcolmston/algebra/compare/v0.1.0...HEAD
+[0.2.0]: https://github.com/malcolmston/algebra/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/malcolmston/algebra/releases/tag/v0.1.0
