@@ -106,6 +106,13 @@ type fn struct {
 	arg  Expr
 }
 
+// fn2 is an application of a two-argument function such as atan2 or beta.
+type fn2 struct {
+	builders
+	name       string
+	arg1, arg2 Expr
+}
+
 // integral is an unevaluated integral, returned by [Integrate] for integrands
 // it cannot handle in closed form.
 type integral struct {
@@ -138,7 +145,12 @@ func newSum(a []Expr) Expr          { e := &sum{args: a}; e.self = e; return e }
 func newProduct(a []Expr) Expr      { e := &product{factors: a}; e.self = e; return e }
 func newPower(b, x Expr) Expr       { e := &power{base: b, exp: x}; e.self = e; return e }
 func newFn(n string, arg Expr) Expr { e := &fn{name: n, arg: arg}; e.self = e; return e }
-func newIntegral(a, v Expr) Expr    { e := &integral{arg: a, v: v}; e.self = e; return e }
+func newFn2(n string, a1, a2 Expr) Expr {
+	e := &fn2{name: n, arg1: a1, arg2: a2}
+	e.self = e
+	return e
+}
+func newIntegral(a, v Expr) Expr { e := &integral{arg: a, v: v}; e.self = e; return e }
 
 // Sym returns the symbol (named variable) with the given name.
 func Sym(name string) Expr { return newSymbol(name) }
@@ -166,6 +178,30 @@ var Pi = newConst("pi", math.Pi)
 
 // E is Euler's number, the base of the natural logarithm.
 var E = newConst("E", math.E)
+
+// I is the imaginary unit, satisfying I^2 == -1. It participates in ordinary
+// [Add], [Mul] and [Pow] arithmetic; integer powers of I fold (I^2 -> -1) and
+// clean Euler identities such as exp(I*Pi) -> -1 are recognised by [Simplify].
+var I = newConst("I", math.NaN())
+
+// Inf is positive infinity (∞), used as a target for [Limit] and produced by
+// evaluations that diverge. NegInf is negative infinity (-∞).
+var (
+	Inf    = newConst("oo", math.Inf(1))
+	NegInf = newConst("-oo", math.Inf(-1))
+)
+
+// isImagUnit reports whether e is the imaginary unit I.
+func isImagUnit(e Expr) bool {
+	c, ok := e.(*Constant)
+	return ok && c.Name == "I"
+}
+
+// isInfinite reports whether e is one of the infinity constants.
+func isInfinite(e Expr) bool {
+	c, ok := e.(*Constant)
+	return ok && (c.Name == "oo" || c.Name == "-oo")
+}
 
 // --- numeric helpers -------------------------------------------------------
 

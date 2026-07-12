@@ -252,7 +252,7 @@ func TestIntegrate(t *testing.T) {
 		}
 	}
 	// Unhandled integrand returns an unevaluated Integral node.
-	un := Integrate(mustParse(t, "x*sin(x)"), x)
+	un := Integrate(mustParse(t, "exp(x^2)"), x)
 	if _, ok := un.(*integral); !ok {
 		t.Errorf("expected unevaluated integral, got %s", un)
 	}
@@ -327,9 +327,6 @@ func TestSolveQuadratic(t *testing.T) {
 }
 
 func TestSolveErrors(t *testing.T) {
-	if _, err := Solve(mustParse(t, "x^3 + 1"), Sym("x")); err == nil {
-		t.Error("cubic should be unsupported")
-	}
 	if _, err := Solve(mustParse(t, "sin(x)"), Sym("x")); err == nil {
 		t.Error("non-polynomial should error")
 	}

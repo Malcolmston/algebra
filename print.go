@@ -25,8 +25,32 @@ func (f *Float) String() string {
 // String renders a named constant.
 func (c *Constant) String() string { return c.Name }
 
-// String renders a function application, e.g. sin(x).
-func (f *fn) String() string { return f.name + "(" + f.arg.String() + ")" }
+// String renders a function application, e.g. sin(x). The factorial function is
+// rendered postfix as arg! when its argument does not need parentheses.
+func (f *fn) String() string {
+	if f.name == "factorial" {
+		if needParen(f.arg) || isFnCall(f.arg) {
+			return "(" + f.arg.String() + ")!"
+		}
+		return f.arg.String() + "!"
+	}
+	return f.name + "(" + f.arg.String() + ")"
+}
+
+// isFnCall reports whether e prints as a function application (so postfix "!"
+// would bind too loosely without parentheses).
+func isFnCall(e Expr) bool {
+	switch e.(type) {
+	case *fn, *fn2:
+		return true
+	}
+	return false
+}
+
+// String renders a two-argument function application, e.g. atan2(y, x).
+func (f *fn2) String() string {
+	return f.name + "(" + f.arg1.String() + ", " + f.arg2.String() + ")"
+}
 
 // String renders an unevaluated integral, e.g. Integral(f(x), x).
 func (n *integral) String() string {

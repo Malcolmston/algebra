@@ -43,6 +43,13 @@ func (f *fn) Equal(o Expr) bool {
 	return ok && f.name == x.name && f.arg.Equal(x.arg)
 }
 
+// Equal reports whether o is the same two-argument function applied to equal
+// arguments.
+func (f *fn2) Equal(o Expr) bool {
+	x, ok := o.(*fn2)
+	return ok && f.name == x.name && f.arg1.Equal(x.arg1) && f.arg2.Equal(x.arg2)
+}
+
 // Equal reports whether o is an equal unevaluated integral.
 func (n *integral) Equal(o Expr) bool {
 	x, ok := o.(*integral)
@@ -78,10 +85,14 @@ func rank(e Expr) int {
 		return 5
 	case *sum:
 		return 6
-	case *integral:
+	case *fn2:
 		return 7
+	case *integral:
+		return 8
+	case *bigOp:
+		return 9
 	}
-	return 8
+	return 10
 }
 
 // compareExpr defines a deterministic total order used to canonicalize the
@@ -119,12 +130,27 @@ func compareExpr(a, b Expr) int {
 		return compareSlices(x.factors, b.(*product).factors)
 	case *sum:
 		return compareSlices(x.args, b.(*sum).args)
+	case *fn2:
+		y := b.(*fn2)
+		if c := cmpString(x.name, y.name); c != 0 {
+			return c
+		}
+		if c := compareExpr(x.arg1, y.arg1); c != 0 {
+			return c
+		}
+		return compareExpr(x.arg2, y.arg2)
 	case *integral:
 		y := b.(*integral)
 		if c := compareExpr(x.arg, y.arg); c != 0 {
 			return c
 		}
 		return compareExpr(x.v, y.v)
+	case *bigOp:
+		y := b.(*bigOp)
+		if c := cmpString(x.kind, y.kind); c != 0 {
+			return c
+		}
+		return compareExpr(x.body, y.body)
 	}
 	return 0
 }

@@ -18,17 +18,19 @@ func Simplify(e Expr) Expr {
 		for i, a := range x.args {
 			args[i] = Simplify(a)
 		}
-		return Add(args...)
+		return simplifyTrigSum(Add(args...))
 	case *product:
 		fs := make([]Expr, len(x.factors))
 		for i, f := range x.factors {
 			fs[i] = Simplify(f)
 		}
-		return Mul(fs...)
+		return simplifyTrigProduct(Mul(fs...))
 	case *power:
 		return Pow(Simplify(x.base), Simplify(x.exp))
 	case *fn:
 		return applyFn(x.name, Simplify(x.arg))
+	case *fn2:
+		return applyFn2(x.name, Simplify(x.arg1), Simplify(x.arg2))
 	case *integral:
 		return newIntegral(Simplify(x.arg), x.v)
 	}
@@ -63,6 +65,8 @@ func Expand(e Expr) Expr {
 		return Pow(base, Expand(x.exp))
 	case *fn:
 		return applyFn(x.name, Expand(x.arg))
+	case *fn2:
+		return applyFn2(x.name, Expand(x.arg1), Expand(x.arg2))
 	}
 	return e
 }
@@ -130,8 +134,12 @@ func subst(e Expr, name string, val Expr) Expr {
 		return Pow(subst(x.base, name, val), subst(x.exp, name, val))
 	case *fn:
 		return applyFn(x.name, subst(x.arg, name, val))
+	case *fn2:
+		return applyFn2(x.name, subst(x.arg1, name, val), subst(x.arg2, name, val))
 	case *integral:
 		return newIntegral(subst(x.arg, name, val), x.v)
+	case *bigOp:
+		return substBigOp(x, name, val)
 	}
 	return e
 }
@@ -157,8 +165,17 @@ func containsSym(e Expr, name string) bool {
 		return containsSym(x.base, name) || containsSym(x.exp, name)
 	case *fn:
 		return containsSym(x.arg, name)
+	case *fn2:
+		return containsSym(x.arg1, name) || containsSym(x.arg2, name)
 	case *integral:
 		return containsSym(x.arg, name)
+	case *bigOp:
+		// The summation/product index is bound; only the bounds reference the
+		// outer scope.
+		if x.index == name {
+			return containsSym(x.lo, name) || containsSym(x.hi, name)
+		}
+		return containsSym(x.body, name) || containsSym(x.lo, name) || containsSym(x.hi, name)
 	}
 	return false
 }
@@ -168,8 +185,13 @@ func containsSym(e Expr, name string) bool {
 // operation it cannot evaluate numerically.
 func Eval(e Expr, env map[string]float64) (float64, error) {
 	switch x := e.(type) {
-	case *Integer, *Rational, *Float, *Constant:
+	case *Integer, *Rational, *Float:
 		return toFloat(e), nil
+	case *Constant:
+		if x.Name == "I" {
+			return 0, errors.New("algebra: cannot evaluate imaginary unit I as a real; use Evalc")
+		}
+		return x.num, nil
 	case *Symbol:
 		if env != nil {
 			if v, ok := env[x.Name]; ok {
@@ -212,27 +234,36 @@ func Eval(e Expr, env map[string]float64) (float64, error) {
 		if err != nil {
 			return 0, err
 		}
-		switch x.name {
-		case "sin":
-			return math.Sin(v), nil
-		case "cos":
-			return math.Cos(v), nil
-		case "tan":
-			return math.Tan(v), nil
-		case "exp":
-			return math.Exp(v), nil
-		case "log":
-			return math.Log(v), nil
-		case "sqrt":
-			return math.Sqrt(v), nil
+		if r, ok := evalFn1(x.name, v); ok {
+			return r, nil
+		}
+	case *fn2:
+		a, err := Eval(x.arg1, env)
+		if err != nil {
+			return 0, err
+		}
+		b, err := Eval(x.arg2, env)
+		if err != nil {
+			return 0, err
+		}
+		if r, ok := evalFn2(x.name, a, b); ok {
+			return r, nil
 		}
 	}
 	return 0, errors.New("algebra: cannot evaluate " + e.String())
 }
 
 // Evalf numerically evaluates a fully numeric expression (one with no free
-// symbols). It is Eval with an empty environment.
-func Evalf(e Expr) (float64, error) { return Eval(e, nil) }
+// symbols) to a float64. When the real evaluator cannot proceed (for example
+// because the imaginary unit I appears) it falls back to a complex128
+// evaluation and returns the real part if the value is real; genuinely complex
+// values return an error and should be evaluated with [Evalc].
+func Evalf(e Expr) (float64, error) {
+	if v, err := Eval(e, nil); err == nil {
+		return v, nil
+	}
+	return evalfComplexFallback(e)
+}
 
 // mathPow is a thin wrapper so build.go can raise floats without importing
 // math directly.

@@ -46,6 +46,8 @@ func diff(e Expr, name string) Expr {
 		return diffPow(x, name)
 	case *fn:
 		return diffFn(x, name)
+	case *fn2:
+		return diffFn2(x, name)
 	}
 	return Int(0)
 }
@@ -77,6 +79,42 @@ func diffFn(f *fn, name string) Expr {
 	case "tan":
 		// d/dx tan(u) = (1 + tan^2(u)) * u'.
 		return Mul(Add(Int(1), Pow(Tan(u), Int(2))), du)
+	case "sec":
+		return Mul(Sec(u), Tan(u), du)
+	case "csc":
+		return Mul(Int(-1), Csc(u), Cot(u), du)
+	case "cot":
+		return Mul(Int(-1), Pow(Csc(u), Int(2)), du)
+	case "asin":
+		return Mul(du, Pow(Sqrt(Add(Int(1), neg(Pow(u, Int(2))))), Int(-1)))
+	case "acos":
+		return Mul(Int(-1), du, Pow(Sqrt(Add(Int(1), neg(Pow(u, Int(2))))), Int(-1)))
+	case "atan":
+		return Mul(du, Pow(Add(Int(1), Pow(u, Int(2))), Int(-1)))
+	case "acot":
+		return Mul(Int(-1), du, Pow(Add(Int(1), Pow(u, Int(2))), Int(-1)))
+	case "asec":
+		return Mul(du, Pow(Mul(Abs(u), Sqrt(Add(Pow(u, Int(2)), Int(-1)))), Int(-1)))
+	case "acsc":
+		return Mul(Int(-1), du, Pow(Mul(Abs(u), Sqrt(Add(Pow(u, Int(2)), Int(-1)))), Int(-1)))
+	case "sinh":
+		return Mul(Cosh(u), du)
+	case "cosh":
+		return Mul(Sinh(u), du)
+	case "tanh":
+		return Mul(Pow(Sech(u), Int(2)), du)
+	case "coth":
+		return Mul(Int(-1), Pow(Csch(u), Int(2)), du)
+	case "sech":
+		return Mul(Int(-1), Sech(u), Tanh(u), du)
+	case "csch":
+		return Mul(Int(-1), Csch(u), Coth(u), du)
+	case "asinh":
+		return Mul(du, Pow(Sqrt(Add(Pow(u, Int(2)), Int(1))), Int(-1)))
+	case "acosh":
+		return Mul(du, Pow(Sqrt(Add(Pow(u, Int(2)), Int(-1))), Int(-1)))
+	case "atanh":
+		return Mul(du, Pow(Add(Int(1), neg(Pow(u, Int(2)))), Int(-1)))
 	case "exp":
 		return Mul(Exp(u), du)
 	case "log":
@@ -84,6 +122,43 @@ func diffFn(f *fn, name string) Expr {
 	case "sqrt":
 		// d/dx sqrt(u) = u' / (2*sqrt(u)).
 		return Mul(Rat(1, 2), Pow(Sqrt(u), Int(-1)), du)
+	case "abs":
+		// d/dx |u| = sign(u) * u'.
+		return Mul(Sign(u), du)
+	case "sign", "floor", "ceil":
+		// Locally constant almost everywhere.
+		return Int(0)
+	case "gamma":
+		return Mul(Gamma(u), newFn("digamma", u), du)
+	case "factorial":
+		return Mul(Gamma(Add(u, Int(1))), newFn("digamma", Add(u, Int(1))), du)
+	case "erf":
+		// d/dx erf(u) = 2/sqrt(pi) * exp(-u^2) * u'.
+		return Mul(Int(2), Pow(Sqrt(Pi), Int(-1)), Exp(neg(Pow(u, Int(2)))), du)
+	case "erfc":
+		return Mul(Int(-2), Pow(Sqrt(Pi), Int(-1)), Exp(neg(Pow(u, Int(2)))), du)
+	}
+	return Int(0)
+}
+
+// diffFn2 differentiates the two-argument functions atan2 and beta.
+func diffFn2(f *fn2, name string) Expr {
+	switch f.name {
+	case "atan2":
+		// d/dt atan2(y, x) = (x*y' - y*x') / (x^2 + y^2).
+		y, x := f.arg1, f.arg2
+		dy, dx := diff(y, name), diff(x, name)
+		num := Add(Mul(x, dy), neg(Mul(y, dx)))
+		den := Add(Pow(x, Int(2)), Pow(y, Int(2)))
+		return Mul(num, Pow(den, Int(-1)))
+	case "beta":
+		// dB/dt = B(a,b)*((psi(a)-psi(a+b))*a' + (psi(b)-psi(a+b))*b').
+		a, b := f.arg1, f.arg2
+		da, db := diff(a, name), diff(b, name)
+		psiab := newFn("digamma", Add(a, b))
+		termA := Mul(Add(newFn("digamma", a), neg(psiab)), da)
+		termB := Mul(Add(newFn("digamma", b), neg(psiab)), db)
+		return Mul(Beta(a, b), Add(termA, termB))
 	}
 	return Int(0)
 }
@@ -141,6 +216,16 @@ func integrate(e Expr, name string, v Expr) Expr {
 			return r
 		}
 	}
+	// Extended strategies for integrands the structural cases did not resolve.
+	if r := integrateInvSqrtQuadratic(e, name, v); r != nil {
+		return r
+	}
+	if r := integrateRational(e, name, v); r != nil {
+		return r
+	}
+	if r := integrateByParts(e, name, v); r != nil {
+		return r
+	}
 	return newIntegral(e, v)
 }
 
@@ -168,13 +253,36 @@ func integrateFn(f *fn, name string, v Expr) Expr {
 		return nil
 	}
 	inv := Pow(a, Int(-1))
+	u := f.arg
 	switch f.name {
 	case "exp":
-		return Mul(Exp(f.arg), inv)
+		return Mul(Exp(u), inv)
 	case "sin":
-		return Mul(Int(-1), Cos(f.arg), inv)
+		return Mul(Int(-1), Cos(u), inv)
 	case "cos":
-		return Mul(Sin(f.arg), inv)
+		return Mul(Sin(u), inv)
+	case "tan":
+		// ∫tan = -log(cos).
+		return Mul(Int(-1), Log(Cos(u)), inv)
+	case "cot":
+		// ∫cot = log(sin).
+		return Mul(Log(Sin(u)), inv)
+	case "sec":
+		// ∫sec = log(sec + tan).
+		return Mul(Log(Add(Sec(u), Tan(u))), inv)
+	case "csc":
+		// ∫csc = -log(csc + cot).
+		return Mul(Int(-1), Log(Add(Csc(u), Cot(u))), inv)
+	case "sinh":
+		return Mul(Cosh(u), inv)
+	case "cosh":
+		return Mul(Sinh(u), inv)
+	case "tanh":
+		// ∫tanh = log(cosh).
+		return Mul(Log(Cosh(u)), inv)
+	case "coth":
+		// ∫coth = log(sinh).
+		return Mul(Log(Sinh(u)), inv)
 	}
 	return nil
 }

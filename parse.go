@@ -55,6 +55,7 @@ const (
 	tOp
 	tLParen
 	tRParen
+	tComma
 )
 
 type token struct {
@@ -84,7 +85,7 @@ func tokenize(s string) ([]token, error) {
 				i++
 			}
 			toks = append(toks, token{tIdent, string(runes[start:i]), start})
-		case c == '+' || c == '-' || c == '*' || c == '/' || c == '^':
+		case c == '+' || c == '-' || c == '*' || c == '/' || c == '^' || c == '!':
 			toks = append(toks, token{tOp, string(c), i})
 			i++
 		case c == '(':
@@ -92,6 +93,9 @@ func tokenize(s string) ([]token, error) {
 			i++
 		case c == ')':
 			toks = append(toks, token{tRParen, ")", i})
+			i++
+		case c == ',':
+			toks = append(toks, token{tComma, ",", i})
 			i++
 		default:
 			return nil, fmt.Errorf("algebra: unexpected character %q at position %d", string(c), i)
@@ -182,6 +186,19 @@ func (p *parser) peekBinary() (op string, prec int, rightAssoc, implicit bool) {
 }
 
 func (p *parser) parsePrimary() (Expr, error) {
+	e, err := p.parseAtom()
+	if err != nil {
+		return nil, err
+	}
+	// Postfix factorial, e.g. 5! or (x+1)!.
+	for p.peek().kind == tOp && p.peek().text == "!" {
+		p.next()
+		e = Factorial(e)
+	}
+	return e, nil
+}
+
+func (p *parser) parseAtom() (Expr, error) {
 	t := p.peek()
 	switch t.kind {
 	case tNum:
@@ -200,31 +217,61 @@ func (p *parser) parsePrimary() (Expr, error) {
 		return e, nil
 	case tIdent:
 		p.next()
-		if isFunctionName(t.text) && p.peek().kind == tLParen {
-			p.next()
-			arg, err := p.parseExpr(0)
-			if err != nil {
-				return nil, err
-			}
-			if p.peek().kind != tRParen {
-				return nil, fmt.Errorf("algebra: expected ')' after %s( at position %d", t.text, p.peek().pos)
-			}
-			p.next()
-			name := t.text
-			if name == "ln" {
-				name = "log"
-			}
-			return applyFn(name, arg), nil
+		if (isFunctionName(t.text) || isFunction2Name(t.text)) && p.peek().kind == tLParen {
+			return p.parseCall(t.text, t.pos)
 		}
 		switch t.text {
 		case "pi":
 			return Pi, nil
 		case "E":
 			return E, nil
+		case "I":
+			return I, nil
+		case "oo":
+			return Inf, nil
 		}
 		return Sym(t.text), nil
 	}
 	return nil, fmt.Errorf("algebra: unexpected %q at position %d", t.text, t.pos)
+}
+
+// parseCall parses the argument list of a function call whose name has already
+// been consumed and the opening parenthesis is the current token.
+func (p *parser) parseCall(name string, pos int) (Expr, error) {
+	p.next() // consume '('
+	var args []Expr
+	for {
+		arg, err := p.parseExpr(0)
+		if err != nil {
+			return nil, err
+		}
+		args = append(args, arg)
+		if p.peek().kind == tComma {
+			p.next()
+			continue
+		}
+		break
+	}
+	if p.peek().kind != tRParen {
+		return nil, fmt.Errorf("algebra: expected ')' after %s( at position %d", name, p.peek().pos)
+	}
+	p.next()
+	if name == "ln" {
+		name = "log"
+	}
+	switch len(args) {
+	case 1:
+		if !isFunctionName(name) {
+			return nil, fmt.Errorf("algebra: %s expects 2 arguments at position %d", name, pos)
+		}
+		return applyFn(name, args[0]), nil
+	case 2:
+		if !isFunction2Name(name) {
+			return nil, fmt.Errorf("algebra: %s does not take 2 arguments at position %d", name, pos)
+		}
+		return applyFn2(name, args[0], args[1]), nil
+	}
+	return nil, fmt.Errorf("algebra: %s given %d arguments at position %d", name, len(args), pos)
 }
 
 func parseNumber(text string, pos int) (Expr, error) {
@@ -245,7 +292,21 @@ func parseNumber(text string, pos int) (Expr, error) {
 
 func isFunctionName(name string) bool {
 	switch name {
-	case "sin", "cos", "tan", "exp", "log", "ln", "sqrt":
+	case "sin", "cos", "tan", "sec", "csc", "cot",
+		"asin", "acos", "atan", "acot", "asec", "acsc",
+		"sinh", "cosh", "tanh", "coth", "sech", "csch",
+		"asinh", "acosh", "atanh",
+		"exp", "log", "ln", "sqrt",
+		"abs", "sign", "floor", "ceil", "factorial", "gamma",
+		"erf", "erfc", "conjugate", "re", "im", "arg":
+		return true
+	}
+	return false
+}
+
+func isFunction2Name(name string) bool {
+	switch name {
+	case "atan2", "beta":
 		return true
 	}
 	return false

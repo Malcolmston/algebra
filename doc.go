@@ -13,9 +13,11 @@
 //   - [Integer]  — an arbitrary-precision integer (backed by math/big).
 //   - [Rational] — an exact fraction with denominator > 1 (backed by math/big).
 //   - [Float]    — an inexact float64 literal.
-//   - [Constant] — a named mathematical constant; [Pi] and [E] are provided.
+//   - [Constant] — a named mathematical constant; [Pi], [E], the imaginary
+//     unit [I] and the infinities [Inf]/[NegInf] are provided.
 //   - internal Add, Mul and Pow nodes for sums, products and powers.
-//   - internal function nodes for sin, cos, tan, exp, log and sqrt.
+//   - internal function nodes for the elementary, trigonometric, hyperbolic and
+//     special functions listed below.
 //
 // Expressions are value-based and immutable: constructors never mutate their
 // arguments and the big.Int/big.Rat payloads are never modified after
@@ -43,10 +45,40 @@
 // The package provides [Simplify], [Expand], [Diff] (symbolic
 // differentiation), [Subs] (substitution), [Eval] and [Evalf] (numeric
 // evaluation), [Integrate] (symbolic integration of a documented subset),
-// [Solve] (linear and quadratic equations), and the bonus [Factor] and
-// [Collect] helpers for univariate polynomials.
+// [Solve] (polynomial equations) and the bonus [Factor] and [Collect] helpers
+// for univariate polynomials.
+//
+// # Functions
+//
+// Beyond the original sin/cos/tan/exp/log/sqrt, the package now provides the
+// reciprocal and inverse trigonometric functions ([Sec], [Csc], [Cot], [Asin],
+// [Acos], [Atan], [Acot], [Asec], [Acsc], [Atan2]); the hyperbolic functions
+// and their inverses ([Sinh], [Cosh], [Tanh], [Coth], [Sech], [Csch], [Asinh],
+// [Acosh], [Atanh]); and the special functions [Abs], [Sign], [Floor], [Ceil],
+// [Factorial], [Gamma], [Beta], [Erf] and [Erfc]. [Simplify] returns exact
+// values at the standard rational multiples of Pi and applies the Pythagorean
+// and double-angle identities.
+//
+// # Complex numbers
+//
+// The imaginary unit [I] participates in ordinary arithmetic (I^2 folds to -1
+// and clean Euler identities such as exp(I*Pi) -> -1 are recognised).
+// [Conjugate], [Re], [Im], [Abs] (modulus) and [Arg] decompose a complex value,
+// and [Evalc] evaluates any expression to a complex128.
+//
+// # Calculus and solving
+//
+// [Limit] computes limits (including L'Hôpital's rule and limits at infinity),
+// [Series] produces Taylor/Maclaurin expansions, and [Summation] and [Product]
+// find closed forms for polynomial, geometric and finite sums and products.
+// [Integrate] additionally handles the arctangent and arcsine forms, the
+// remaining trigonometric and hyperbolic antiderivatives, integration by parts
+// for polynomial×exp/sin/cos, and rational functions via partial fractions.
+// [Solve] handles polynomials of any degree — exact rational, quadratic (with
+// complex conjugate roots) and higher-degree factors, with a numeric fallback —
+// and [SolveSystem] solves linear systems by Gaussian elimination.
 //
 // Correctness is favoured over coverage: an operation that does not know how
-// to transform an expression returns it unchanged (or, for [Integrate], an
-// explicit unevaluated Integral node) rather than producing a wrong answer.
+// to transform an expression returns it unchanged (or an explicit unevaluated
+// node) rather than producing a wrong answer.
 package algebra

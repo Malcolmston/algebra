@@ -123,6 +123,9 @@ func Pow(base, exp Expr) Expr {
 			return Int(0)
 		}
 	}
+	if isImagUnit(base) && isInteger(exp) {
+		return reduceIPow(exp.(*Integer).Val)
+	}
 	if isNum(base) && isInteger(exp) {
 		if v := numPowInt(base, exp.(*Integer).Val); v != nil {
 			return v
@@ -248,46 +251,86 @@ func mulNumTerm(c, r Expr) Expr {
 
 // --- elementary function constructors --------------------------------------
 
-// Sin returns sin(x), folding sin(0) to 0.
+// Sin returns sin(x), folding sin(0) to 0 and returning exact values at
+// rational multiples of Pi that land on the standard unit-circle angles
+// (multiples of Pi/6 and Pi/4).
 func Sin(x Expr) Expr {
 	if isZero(x) {
 		return Int(0)
 	}
+	if s, _, ok := exactSinCosOf(x); ok {
+		return s
+	}
+	if neg, mag := splitSign(x); neg {
+		// sin is odd: sin(-u) = -sin(u).
+		return neg1Mul(Sin(mag))
+	}
 	return newFn("sin", x)
 }
 
-// Cos returns cos(x), folding cos(0) to 1.
+// Cos returns cos(x), folding cos(0) to 1 and returning exact values at the
+// standard rational multiples of Pi.
 func Cos(x Expr) Expr {
 	if isZero(x) {
 		return Int(1)
 	}
+	if _, c, ok := exactSinCosOf(x); ok {
+		return c
+	}
+	if neg, mag := splitSign(x); neg {
+		// cos is even: cos(-u) = cos(u).
+		return Cos(mag)
+	}
 	return newFn("cos", x)
 }
 
-// Tan returns tan(x), folding tan(0) to 0.
+// Tan returns tan(x), folding tan(0) to 0 and returning exact values at the
+// standard rational multiples of Pi where the tangent is finite.
 func Tan(x Expr) Expr {
 	if isZero(x) {
 		return Int(0)
 	}
+	if t, ok := exactTanOf(x); ok {
+		return t
+	}
+	if neg, mag := splitSign(x); neg {
+		// tan is odd.
+		return neg1Mul(Tan(mag))
+	}
 	return newFn("tan", x)
 }
 
-// Exp returns e^x, folding exp(0) to 1.
+// neg1Mul returns -e in canonical form (a small helper used by the odd-function
+// folds).
+func neg1Mul(e Expr) Expr { return Mul(Int(-1), e) }
+
+// Exp returns e^x, folding exp(0) to 1, recognising exp(log(u)) -> u and the
+// clean Euler values exp(I*Pi*k) for integer or half-integer k (for example
+// exp(I*Pi) -> -1 and exp(I*Pi/2) -> I).
 func Exp(x Expr) Expr {
 	if isZero(x) {
 		return Int(1)
 	}
+	if f, ok := x.(*fn); ok && f.name == "log" {
+		return f.arg
+	}
+	if v := eulerExp(x); v != nil {
+		return v
+	}
 	return newFn("exp", x)
 }
 
-// Log returns the natural logarithm log(x), folding log(1) to 0 and log(E)
-// to 1.
+// Log returns the natural logarithm log(x), folding log(1) to 0, log(E) to 1
+// and recognising log(exp(u)) -> u.
 func Log(x Expr) Expr {
 	if isOne(x) {
 		return Int(0)
 	}
 	if c, ok := x.(*Constant); ok && c.Name == "E" {
 		return Int(1)
+	}
+	if f, ok := x.(*fn); ok && f.name == "exp" {
+		return f.arg
 	}
 	return newFn("log", x)
 }
@@ -327,12 +370,86 @@ func applyFn(name string, arg Expr) Expr {
 		return Cos(arg)
 	case "tan":
 		return Tan(arg)
+	case "sec":
+		return Sec(arg)
+	case "csc":
+		return Csc(arg)
+	case "cot":
+		return Cot(arg)
+	case "asin":
+		return Asin(arg)
+	case "acos":
+		return Acos(arg)
+	case "atan":
+		return Atan(arg)
+	case "acot":
+		return Acot(arg)
+	case "asec":
+		return Asec(arg)
+	case "acsc":
+		return Acsc(arg)
+	case "sinh":
+		return Sinh(arg)
+	case "cosh":
+		return Cosh(arg)
+	case "tanh":
+		return Tanh(arg)
+	case "coth":
+		return Coth(arg)
+	case "sech":
+		return Sech(arg)
+	case "csch":
+		return Csch(arg)
+	case "asinh":
+		return Asinh(arg)
+	case "acosh":
+		return Acosh(arg)
+	case "atanh":
+		return Atanh(arg)
 	case "exp":
 		return Exp(arg)
 	case "log":
 		return Log(arg)
 	case "sqrt":
 		return Sqrt(arg)
+	case "abs":
+		return Abs(arg)
+	case "sign":
+		return Sign(arg)
+	case "floor":
+		return Floor(arg)
+	case "ceil":
+		return Ceil(arg)
+	case "factorial":
+		return Factorial(arg)
+	case "gamma":
+		return Gamma(arg)
+	case "erf":
+		return Erf(arg)
+	case "erfc":
+		return Erfc(arg)
+	case "digamma":
+		return newFn("digamma", arg)
+	case "conjugate":
+		return Conjugate(arg)
+	case "re":
+		return Re(arg)
+	case "im":
+		return Im(arg)
+	case "arg":
+		return Arg(arg)
 	}
 	return newFn(name, arg)
+}
+
+// applyFn2 constructs the two-argument function named name, routing through the
+// folding constructors.
+func applyFn2(name string, a, b Expr) Expr {
+	switch name {
+	case "atan2":
+		return Atan2(a, b)
+	case "beta":
+		return Beta(a, b)
+	}
+	return newFn2(name, a, b)
 }

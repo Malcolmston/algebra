@@ -2,15 +2,21 @@ package algebra
 
 import (
 	"errors"
+	"math"
 	"math/big"
+	"math/cmplx"
 )
 
-// Solve returns the real solutions of the equation e == 0 for the symbol v.
-// It handles expressions that are polynomials in v of degree 1 (linear) or 2
-// (quadratic). Quadratic roots are returned exactly, using an [Integer] or
-// [Rational] when the discriminant is a perfect square and a symbolic sqrt
-// otherwise; a repeated root is returned once. Higher-degree or non-polynomial
-// equations return an error. v must be a [Symbol].
+// Solve returns the solutions of the equation e == 0 for the symbol v.
+//
+// It handles polynomials of any degree by first extracting all rational roots
+// exactly (via the rational-root theorem and synthetic division) and then
+// resolving the remaining factor: a linear or quadratic factor is solved
+// exactly with the quadratic formula (complex conjugate roots a±b*I are
+// returned when the discriminant is negative), and an irreducible factor of
+// degree three or higher is solved numerically with the Durand–Kerner method,
+// yielding correct real and complex roots. Repeated roots are returned once.
+// Non-polynomial equations return an error. v must be a [Symbol].
 //
 // To solve lhs == rhs, pass Solve(lhs.Add(rhs.Mul(Int(-1))), v), i.e. move
 // everything to one side.
@@ -27,30 +33,89 @@ func Solve(e, v Expr) ([]Expr, error) {
 	for deg > 0 && isZero(coeffs[deg]) {
 		deg--
 	}
-	switch deg {
-	case 0:
+	if deg == 0 {
 		if isZero(coeffs[0]) {
 			return nil, errors.New("algebra: equation holds for all values")
 		}
 		return nil, errors.New("algebra: no solution")
-	case 1:
-		// c1*x + c0 = 0  ->  x = -c0/c1.
-		root := Simplify(Mul(neg(coeffs[0]), Pow(coeffs[1], Int(-1))))
-		return []Expr{root}, nil
-	case 2:
-		return solveQuadratic(coeffs[2], coeffs[1], coeffs[0], v), nil
-	default:
-		return nil, errors.New("algebra: only linear and quadratic equations are supported")
 	}
+	rc, ok := ratCoeffs(coeffs[:deg+1])
+	if !ok {
+		// Non-rational coefficients: fall back to the exact low-degree formulas.
+		switch deg {
+		case 1:
+			return []Expr{Simplify(Mul(neg(coeffs[0]), Pow(coeffs[1], Int(-1))))}, nil
+		case 2:
+			return solveQuadratic(coeffs[2], coeffs[1], coeffs[0], v), nil
+		}
+		return nil, errors.New("algebra: cannot solve this equation exactly")
+	}
+	return solveRatPoly(rc, v)
 }
 
-// solveQuadratic solves a*x^2 + b*x + c = 0 using the quadratic formula.
+// solveRatPoly solves a polynomial with rational coefficients.
+func solveRatPoly(rc []*big.Rat, v Expr) ([]Expr, error) {
+	rc = trimRat(rc)
+	var roots []Expr
+	add := func(r Expr) {
+		for _, ex := range roots {
+			if ex.Equal(r) {
+				return
+			}
+		}
+		roots = append(roots, r)
+	}
+	// Extract rational roots exactly.
+	core := append([]*big.Rat(nil), rc...)
+	for {
+		rr := rationalRoots(core)
+		if len(rr) == 0 {
+			break
+		}
+		for _, r := range rr {
+			add(newRational(new(big.Rat).Set(r)))
+			for ratPolyEval(core, r).Sign() == 0 && ratDegree(core) >= 1 {
+				core = deflate(core, r)
+			}
+		}
+	}
+	switch ratDegree(core) {
+	case 0:
+		// Fully solved by rational roots (or a nonzero constant remains).
+	case 1:
+		add(newRational(new(big.Rat).Neg(new(big.Rat).Quo(core[0], core[1]))))
+	case 2:
+		for _, r := range solveQuadratic(
+			newRational(new(big.Rat).Set(core[2])),
+			newRational(new(big.Rat).Set(core[1])),
+			newRational(new(big.Rat).Set(core[0])), v) {
+			add(r)
+		}
+	default:
+		for _, r := range durandKerner(core) {
+			add(complexToExpr(r))
+		}
+	}
+	if len(roots) == 0 {
+		return nil, errors.New("algebra: no solution")
+	}
+	sortExprs(roots)
+	return roots, nil
+}
+
+// solveQuadratic solves a*x^2 + b*x + c = 0 using the quadratic formula,
+// returning complex conjugate roots a±b*I when the discriminant is negative.
 func solveQuadratic(a, b, c, v Expr) []Expr {
 	disc := Simplify(Add(Pow(b, Int(2)), Mul(Int(-4), a, c)))
-	root := sqrtExpr(disc)
+	var root Expr
+	if isNum(disc) && numSign(disc) < 0 {
+		root = Mul(I, sqrtExpr(neg(disc)))
+	} else {
+		root = sqrtExpr(disc)
+	}
 	denom := Mul(Int(2), a)
-	r1 := Simplify(Mul(Add(neg(b), root), Pow(denom, Int(-1))))
-	r2 := Simplify(Mul(Add(neg(b), neg(root)), Pow(denom, Int(-1))))
+	r1 := Simplify(Expand(Mul(Add(neg(b), root), Pow(denom, Int(-1)))))
+	r2 := Simplify(Expand(Mul(Add(neg(b), neg(root)), Pow(denom, Int(-1)))))
 	if r1.Equal(r2) {
 		return []Expr{r1}
 	}
@@ -104,17 +169,6 @@ func extractSquare(n *big.Int) (out, rad *big.Int) {
 		fsq.Mul(f, f)
 	}
 	return out, rad
-}
-
-// intSqrt returns the integer square root of n and whether n is a perfect
-// square. n must be non-negative.
-func intSqrt(n *big.Int) (*big.Int, bool) {
-	if n.Sign() < 0 {
-		return nil, false
-	}
-	r := new(big.Int).Sqrt(n)
-	sq := new(big.Int).Mul(r, r)
-	return r, sq.Cmp(n) == 0
 }
 
 // polyCoeffs returns the coefficients of e viewed as a polynomial in the
@@ -230,3 +284,202 @@ func Collect(e, v Expr) Expr {
 
 // neg returns -e in canonical form.
 func neg(e Expr) Expr { return Mul(Int(-1), e) }
+
+// durandKerner returns numeric approximations to all roots (real and complex)
+// of the polynomial with rational coefficients c using the Durand–Kerner
+// iteration.
+func durandKerner(c []*big.Rat) []complex128 {
+	c = trimRat(c)
+	n := ratDegree(c)
+	if n < 1 {
+		return nil
+	}
+	// Monic complex coefficients, index i = x^i.
+	coef := make([]complex128, n+1)
+	lead, _ := c[n].Float64()
+	for i := 0; i <= n; i++ {
+		f, _ := c[i].Float64()
+		coef[i] = complex(f/lead, 0)
+	}
+	eval := func(z complex128) complex128 {
+		acc := complex(0, 0)
+		for i := n; i >= 0; i-- {
+			acc = acc*z + coef[i]
+		}
+		return acc
+	}
+	// Distinct initial guesses on a spiral.
+	roots := make([]complex128, n)
+	seed := complex(0.4, 0.9)
+	cur := complex(1, 0)
+	for i := 0; i < n; i++ {
+		cur *= seed
+		roots[i] = cur
+	}
+	for iter := 0; iter < 500; iter++ {
+		maxDelta := 0.0
+		for i := 0; i < n; i++ {
+			denom := complex(1, 0)
+			for j := 0; j < n; j++ {
+				if j != i {
+					denom *= roots[i] - roots[j]
+				}
+			}
+			if denom == 0 {
+				continue
+			}
+			delta := eval(roots[i]) / denom
+			roots[i] -= delta
+			if d := cmplx.Abs(delta); d > maxDelta {
+				maxDelta = d
+			}
+		}
+		if maxDelta < 1e-14 {
+			break
+		}
+	}
+	return roots
+}
+
+// complexToExpr converts a numeric root to an expression, snapping values very
+// close to integers, and dropping negligible real or imaginary parts.
+func complexToExpr(z complex128) Expr {
+	re := snap(real(z))
+	im := snap(imag(z))
+	if im == 0 {
+		return realToExpr(re)
+	}
+	return Add(realToExpr(re), Mul(realToExpr(im), I))
+}
+
+func realToExpr(x float64) Expr {
+	if x == math.Trunc(x) && math.Abs(x) < 1e15 {
+		return Int(int64(x))
+	}
+	return Flt(x)
+}
+
+// snap rounds x to the nearest integer when it is within a small tolerance.
+func snap(x float64) float64 {
+	r := math.Round(x)
+	if math.Abs(x-r) < 1e-9 {
+		return r
+	}
+	if math.Abs(x) < 1e-12 {
+		return 0
+	}
+	return x
+}
+
+// SolveSystem solves a system of linear equations eqs (each read as eq == 0)
+// for the given syms, using Gaussian elimination over the rationals. It returns
+// the solution values aligned with syms. The number of equations must equal the
+// number of unknowns and the system must be linear with a unique solution;
+// otherwise an error is returned. Each entry of syms must be a [Symbol].
+func SolveSystem(eqs []Expr, syms []Expr) ([]Expr, error) {
+	n := len(syms)
+	if n == 0 {
+		return nil, errors.New("algebra: no unknowns")
+	}
+	if len(eqs) != n {
+		return nil, errors.New("algebra: need as many equations as unknowns")
+	}
+	names := make([]string, n)
+	for j, sy := range syms {
+		s, ok := sy.(*Symbol)
+		if !ok {
+			return nil, errors.New("algebra: SolveSystem requires symbols")
+		}
+		names[j] = s.Name
+	}
+	// Build augmented matrix A|b with A x = b, where b = -constant term.
+	a := make([][]*big.Rat, n)
+	b := make([]*big.Rat, n)
+	for i, eq := range eqs {
+		a[i] = make([]*big.Rat, n)
+		linComb := Expr(Int(0))
+		for j := range names {
+			cij := Simplify(Diff(eq, syms[j]))
+			for _, nm := range names {
+				if containsSym(cij, nm) {
+					return nil, errors.New("algebra: system is not linear")
+				}
+			}
+			r, ok := toRat(cij)
+			if !ok {
+				return nil, errors.New("algebra: non-rational coefficient")
+			}
+			a[i][j] = new(big.Rat).Set(r)
+			linComb = Add(linComb, Mul(cij, syms[j]))
+		}
+		// Constant term: equation with all unknowns set to zero.
+		constExpr := eq
+		for _, sy := range syms {
+			constExpr = Subs(constExpr, sy, Int(0))
+		}
+		constExpr = Simplify(constExpr)
+		// Verify linearity: eq == linComb + const.
+		if !Simplify(Expand(Add(eq, neg(Add(linComb, constExpr))))).Equal(Int(0)) {
+			return nil, errors.New("algebra: system is not linear")
+		}
+		r, ok := toRat(constExpr)
+		if !ok {
+			return nil, errors.New("algebra: non-rational constant")
+		}
+		b[i] = new(big.Rat).Neg(r)
+	}
+	sol, err := gaussSolve(a, b)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]Expr, n)
+	for j := range sol {
+		out[j] = newRational(sol[j])
+	}
+	return out, nil
+}
+
+// gaussSolve solves the n×n rational linear system a x = b by Gaussian
+// elimination with partial pivoting.
+func gaussSolve(a [][]*big.Rat, b []*big.Rat) ([]*big.Rat, error) {
+	n := len(a)
+	m := make([][]*big.Rat, n)
+	for i := range a {
+		m[i] = make([]*big.Rat, n+1)
+		for j := 0; j < n; j++ {
+			m[i][j] = new(big.Rat).Set(a[i][j])
+		}
+		m[i][n] = new(big.Rat).Set(b[i])
+	}
+	for col := 0; col < n; col++ {
+		piv := -1
+		for r := col; r < n; r++ {
+			if m[r][col].Sign() != 0 {
+				piv = r
+				break
+			}
+		}
+		if piv < 0 {
+			return nil, errors.New("algebra: singular or underdetermined system")
+		}
+		m[col], m[piv] = m[piv], m[col]
+		inv := new(big.Rat).Inv(m[col][col])
+		for j := col; j <= n; j++ {
+			m[col][j].Mul(m[col][j], inv)
+		}
+		for r := 0; r < n; r++ {
+			if r == col || m[r][col].Sign() == 0 {
+				continue
+			}
+			factor := new(big.Rat).Set(m[r][col])
+			for j := col; j <= n; j++ {
+				m[r][j].Sub(m[r][j], new(big.Rat).Mul(factor, m[col][j]))
+			}
+		}
+	}
+	sol := make([]*big.Rat, n)
+	for i := 0; i < n; i++ {
+		sol[i] = new(big.Rat).Set(m[i][n])
+	}
+	return sol, nil
+}
