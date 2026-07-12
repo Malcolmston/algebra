@@ -136,7 +136,7 @@ answer. Concretely, as reported by the core:
 ## Documentation
 
 - Full API reference on [pkg.go.dev](https://pkg.go.dev/github.com/malcolmston/algebra).
-- Docs site (forthcoming): <https://malcolmston.github.io/algebra/>.
+- Docs site: <https://malcolmston.github.io/algebra/>.
 
 ## License
 
