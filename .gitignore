@@ -1,0 +1,26 @@
+# Binaries
+algebra
+example
+examples/examples
+*.exe
+*.o
+*.out
+
+# Test cache
+*.test
+*.prof
+coverage.out
+
+# IDE
+.idea/
+.vscode/
+
+# Module cache
+vendor/
+
+# Node (tooling, added later)
+node_modules/
+dist/
+playwright-report/
+test-results/
+coverage/
