@@ -78,6 +78,31 @@
 // complex conjugate roots) and higher-degree factors, with a numeric fallback —
 // and [SolveSystem] solves linear systems by Gaussian elimination.
 //
+// # Subpackages
+//
+// Four companion packages build on the same standard-library-only philosophy:
+//
+//   - matrix — symbolic and numeric linear algebra over [Expr] values:
+//     [matrix.Matrix] and [matrix.Vector] with exact determinant, inverse,
+//     reduced row echelon form, rank, adjugate, transpose, Kronecker product,
+//     matrix powers, characteristic polynomial and eigenvalues, plus
+//     [matrix.Solve] for Ax=b and the vector dot, cross and norm operations.
+//   - ntheory — number theory and combinatorics on int64/math/big: GCD/LCM and
+//     the extended Euclid, deterministic Miller–Rabin primality, prime sieves
+//     and factorization, Euler's totient, the Möbius function, modular
+//     arithmetic (modular exponentiation and inverse, CRT, the Legendre/Jacobi
+//     symbols, discrete logarithm), the binomial/multinomial coefficients and
+//     the Fibonacci, Lucas, Catalan, Bernoulli and partition sequences.
+//   - stats — descriptive statistics (mean, median, variance, quantiles,
+//     skewness, kurtosis, correlation and linear regression) and eight
+//     probability distributions (Normal, Binomial, Poisson, Uniform,
+//     Exponential, Student's t, chi-squared and Gamma) with PDF/PMF, CDF and
+//     moment methods.
+//   - physics — the SI-2019/CODATA physical constants (enumerable via
+//     [physics.Constants] and [physics.Lookup]), unit conversions across
+//     length, mass, time, temperature, energy and angle, and common formulas
+//     for kinematics, relativity, waves and electromagnetism.
+//
 // Correctness is favoured over coverage: an operation that does not know how
 // to transform an expression returns it unchanged (or an explicit unevaluated
 // node) rather than producing a wrong answer.
