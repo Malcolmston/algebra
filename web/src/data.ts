@@ -15,10 +15,12 @@ export const ALGEBRA: Lib = {
   tagline:"Symbolic algebra in Go.",
   blurb:"A from-scratch, standard-library-only computer-algebra system (CAS) for Go. It represents mathematical "+
     "expressions as immutable, value-based trees, parses ordinary infix strings, and manipulates them symbolically — "+
-    "simplify, expand, differentiate, integrate, substitute, evaluate numerically and solve linear and quadratic "+
-    "equations. The canonicalizing Add / Mul / Pow constructors mean mathematically equal expressions compare equal "+
-    "and print identically. A faithful, idiomatic port of a tiny subset of Python's SymPy.",
-  tags:["expression trees","infix parser","simplify","expand","differentiation","integration","equation solving","math/big exact arithmetic"],
+    "simplify, expand, differentiate, integrate, take limits and series, substitute, evaluate numerically or over the "+
+    "complex plane, and solve polynomial equations of any degree. The canonicalizing Add / Mul / Pow constructors mean "+
+    "mathematically equal expressions compare equal and print identically. Four companion subpackages add symbolic "+
+    "matrix linear algebra, number theory, statistics and physics helpers. A faithful, idiomatic port of a subset of "+
+    "Python's SymPy.",
+  tags:["expression trees","infix parser","simplify","differentiation","integration","equation solving","complex numbers","linear algebra","number theory","math/big exact arithmetic"],
   features:[
     "<code>Expr</code> trees — immutable, value-based nodes: symbols, arbitrary-precision <code>Integer</code> / <code>Rational</code> (via <code>math/big</code>), floats, constants (<code>Pi</code>, <code>E</code>), sums, products, powers and elementary functions",
     "A precedence-climbing <code>Parse</code> for ordinary infix notation: <code>+ - * / ^</code>, unary signs, parentheses, functions (<code>sin</code>, <code>cos</code>, <code>tan</code>, <code>exp</code>, <code>log</code>, <code>sqrt</code>) and implicit multiplication (<code>2x</code>, <code>2(x+1)</code>)",
@@ -27,8 +29,8 @@ export const ALGEBRA: Lib = {
     "<code>Integrate</code> — symbolic antiderivatives of a documented subset, returning an unevaluated <code>Integral</code> rather than a wrong answer",
     "Full <b>trigonometry</b> &amp; <b>hyperbolic</b> functions (with inverses and exact special-angle values), <b>complex numbers</b> (<code>I</code>, <code>Conjugate</code>, <code>Re</code>/<code>Im</code>, <code>Arg</code>, Euler folds), and <b>special functions</b> (<code>Gamma</code>, <code>Beta</code>, <code>Erf</code>, <code>Factorial</code>)",
     "Advanced calculus — <code>Limit</code> (with L'Hôpital), <code>Series</code> (Taylor/Maclaurin), <code>Summation</code> / <code>Product</code>, and richer <code>Integrate</code> (by parts, partial fractions, arctan/asin forms)",
-    "<code>Solve</code> — linear, quadratic, cubic and quartic equations with complex roots, plus <code>SolveSystem</code> for linear systems",
-    "<b>Subpackages</b>: <code>matrix</code> (symbolic linear algebra — det, inverse, eigenvalues, solve <code>Ax=b</code>), <code>ntheory</code> (primes, factorization, modular arithmetic, combinatorics), <code>stats</code> (descriptive statistics &amp; distributions) and <code>physics</code> (SI constants, unit conversion, formulas)",
+    "<code>Solve</code> — polynomial equations of any degree: exact rational, quadratic, cubic and quartic factors with complex conjugate roots and a numeric Durand–Kerner fallback for irreducible factors; <code>SolveSystem</code> solves linear systems by Gaussian elimination",
+    "<b>Four subpackages</b>: <code>matrix</code> (symbolic linear algebra — <code>Det</code>, <code>Inverse</code>, <code>RREF</code>, <code>Eigenvalues</code>, <code>CharPoly</code>, solve <code>Ax=b</code>), <code>ntheory</code> (primes, factorization, modular arithmetic, combinatorics, integer sequences), <code>stats</code> (descriptive statistics, linear regression &amp; eight probability distributions) and <code>physics</code> (CODATA constants, unit conversion, kinematics/relativity/EM formulas)",
     "<code>Eval</code> / <code>Evalf</code> / <code>Evalc</code> — numeric &amp; complex evaluation. Zero dependencies — pure Go standard library"
   ],
   node_code:
