@@ -39,13 +39,27 @@ type Expr interface {
 // package-level functions.
 type builders struct{ self Expr }
 
-func (b builders) implExpr()               {}
-func (b builders) Add(o ...Expr) Expr      { return Add(append([]Expr{b.self}, o...)...) }
-func (b builders) Mul(o ...Expr) Expr      { return Mul(append([]Expr{b.self}, o...)...) }
-func (b builders) Pow(exp Expr) Expr       { return Pow(b.self, exp) }
-func (b builders) Diff(v Expr) Expr        { return Diff(b.self, v) }
-func (b builders) Simplify() Expr          { return Simplify(b.self) }
-func (b builders) Expand() Expr            { return Expand(b.self) }
+func (b builders) implExpr() {}
+
+// Add returns the canonical sum of the receiver and the arguments.
+func (b builders) Add(o ...Expr) Expr { return Add(append([]Expr{b.self}, o...)...) }
+
+// Mul returns the canonical product of the receiver and the arguments.
+func (b builders) Mul(o ...Expr) Expr { return Mul(append([]Expr{b.self}, o...)...) }
+
+// Pow returns the receiver raised to exp.
+func (b builders) Pow(exp Expr) Expr { return Pow(b.self, exp) }
+
+// Diff returns the derivative of the receiver with respect to v.
+func (b builders) Diff(v Expr) Expr { return Diff(b.self, v) }
+
+// Simplify returns a canonicalized, simplified copy of the receiver.
+func (b builders) Simplify() Expr { return Simplify(b.self) }
+
+// Expand distributes products over sums and expands integer powers.
+func (b builders) Expand() Expr { return Expand(b.self) }
+
+// Subs substitutes every occurrence of sym with val in the receiver.
 func (b builders) Subs(sym, val Expr) Expr { return Subs(b.self, sym, val) }
 
 // Symbol is a named variable such as x or y.

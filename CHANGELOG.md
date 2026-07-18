@@ -5,6 +5,36 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-07-18
+### Added
+- **Step-by-step solver** in the root package: `Step` and `Solution` types and
+  the generators `DifferentiateSteps`, `IntegrateSteps`, `SimplifySteps`,
+  `ExpandSteps`, `SolveLinearSteps`, `SolveQuadraticSteps`, `SolveCubicSteps`,
+  `FactorSteps`, `CompleteSquareSteps`, `PartialFractionSteps`,
+  `SolveSystemSteps`, `LimitSteps` and `SeriesSteps` — each returns every
+  intermediate step with a clear plain-language explanation and the before/after
+  math. A LaTeX generator (`GenerateLaTeX`/`SolutionLaTeX` plus `Step.LaTeX`/
+  `Solution.LaTeX`) renders a full derivation, reusing the expression renderer.
+- **plot** — a matplotlib-style charting sub-package that renders line/scatter/
+  bar/histogram/step/fill series to SVG using only the standard library, with an
+  `ExportMatplotlib` helper that emits an equivalent matplotlib script.
+- **29 new mathematics sub-packages**, standard-library-only: `autodiff`,
+  `complexanalysis`, `controltheory`, `crypto`, `diffgeo`, `discretemath`,
+  `dynamical`, `ecc`, `fin`, `fractal`, `gametheory`, `geom3d`, `graph`,
+  `groups`, `hypercomplex`, `infotheory`, `interval`, `linprog`, `logic`,
+  `numpde`, `powerseries`, `probability`, `seq`, `settheory`, `signal`,
+  `tensor`, `transform`, `wavelet` — roughly 1,350 new exported functions and
+  types spanning automatic differentiation, complex analysis, control theory,
+  cryptographic number theory, differential geometry, dynamical systems and
+  fractals, elliptic curves, abstract algebra, information theory, interval
+  arithmetic, linear/convex programming, propositional logic, numerical PDEs,
+  formal power series, probability, set/order theory, signal processing,
+  tensors, integral transforms (FFT/Laplace/Z) and wavelets.
+
+### Fixed
+- Documented the seven promoted `builders` methods on the expression value types,
+  bringing the module to 100% godoc (0 missing across all exported symbols).
+
 ## [0.6.0] - 2026-07-18
 ### Added
 - Seven new sub-packages, each covering a numerical-mathematics domain with the
