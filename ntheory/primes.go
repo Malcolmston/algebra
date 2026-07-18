@@ -101,6 +101,18 @@ func NextPrime(n int64) int64 {
 	return candidate
 }
 
+// PrevPrime returns the greatest prime strictly less than n together with
+// ok == true. When no prime is smaller than n (that is, n <= 2) it returns
+// (0, false). It is the int64 counterpart of [NextPrime] and delegates to
+// [PrevPrimeU64].
+func PrevPrime(n int64) (prime int64, ok bool) {
+	if n <= 2 {
+		return 0, false
+	}
+	p, found := PrevPrimeU64(uint64(n))
+	return int64(p), found
+}
+
 // PrimesUpTo returns all primes p with p <= n in ascending order, computed with
 // the sieve of Eratosthenes. It returns nil for n < 2.
 func PrimesUpTo(n int64) []int64 {

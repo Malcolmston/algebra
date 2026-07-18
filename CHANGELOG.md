@@ -5,6 +5,43 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-07-18
+### Added
+- **matrix** sub-package: dense linear-algebra expansion — LU/QR/Cholesky and
+  singular-value decompositions (`SVD`, `SingularValues`), symmetric and general
+  eigensolvers, numerical `RankNumeric`, pseudoinverse and least-squares
+  (`lstsq`), matrix functions (`matfunc`), a family of matrix/vector `norms`,
+  and cache-friendly dense kernels.
+- **ntheory** sub-package: overflow-safe uint64 fast paths — deterministic
+  `IsPrimeU64` (Montgomery-accelerated Miller-Rabin with a proven 7-base witness
+  set), `NextPrimeU64`/`PrevPrimeU64`/`PrevPrime` and Baillie-PSW
+  `IsProbablePrimeBig`/`NextPrimeBig`/`PrevPrimeBig`; a segmented `SegmentedSieve`
+  with a streaming `PrimeSieve`, `PrimePiRange` and `NthPrime`; `MulModU64` plus
+  `Montgomery`/`Barrett` fast modular arithmetic; Pollard-Brent factorization
+  (`PollardBrentU64`, `FactorizeU64`, `FactorizeBig`, `FactorListUint64`);
+  modular square roots (`SqrtMod`, `SqrtModBig`, `AllSqrtModComposite`);
+  primitive roots and `MultiplicativeOrder`; generalized divisor functions
+  (`DivisorSigma`, `TotientSieve`, `MobiusSieve`, `MertensFunction`); and
+  continued fractions with `PellFundamental`.
+- **stats** sub-package: more distributions (`Beta`, `FDist`, `LogNormal`,
+  `Weibull`, `Geometric`, `NegativeBinomial`, `GeometricFailures`,
+  `NegativeBinomialInt`, `Hypergeometric`) with PDF/PMF/CDF/quantile and seeded
+  sampling; streaming moments (`Accumulator`, `CovAccumulator`); hypothesis
+  tests (t-tests, chi-square, one-way ANOVA, Mann-Whitney U); multiple linear
+  and ridge regression with covariance/correlation matrices; and confidence
+  intervals plus bootstrap resampling.
+- **physics** sub-package: zero-allocation `Vec3` algebra; kinematics, orbital
+  mechanics and 1D collisions; special relativity (`Beta`, Lorentz factor,
+  relativistic energy/momentum, velocity addition); ideal-gas and heat-transfer
+  thermodynamics; electromagnetism (Coulomb field/potential, resistor and
+  capacitor networks); and measurement-uncertainty propagation.
+
+## [0.3.0] - 2026-07-15
+### Added
+- Root CAS expansion: multivariate polynomial tools (`poly`), first- and
+  second-order ODE solving (`odesolve`), and LaTeX rendering of expressions
+  (`latex`).
+
 ## [0.2.0] - 2026-07-12
 ### Added
 - Trigonometry completion: `Sec`, `Csc`, `Cot`, the inverse functions `Asin`,
