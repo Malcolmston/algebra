@@ -1,0 +1,10 @@
+{
+  "repo": "algebra",
+  "upstream": "sympy/sympy",
+  "parityBefore": "91%",
+  "parityAfter": "100%",
+  "upstreamCasesSynced": 56,
+  "gapsFound": 4,
+  "gapsClosed": 3,
+  "asOf": "2026-07-18"
+}

@@ -213,6 +213,16 @@ func numericLimitInf(e Expr, name string, sign int) Expr {
 		}
 		vals = append(vals, v)
 	}
+	// A finite integrand that overflows to a signed infinity at the far sample
+	// diverges to that infinity (e.g. exp(x)/x as x -> oo). math.Inf here is a
+	// genuine overflow of a growing expression, not an oscillation (which would
+	// evaluate to NaN and be rejected by the sampling checks below).
+	if last := vals[len(vals)-1]; math.IsInf(last, 0) {
+		if last > 0 {
+			return Inf
+		}
+		return NegInf
+	}
 	if math.Abs(vals[1]-vals[2]) < 1e-6*(1+math.Abs(vals[2])) {
 		return Flt(vals[2])
 	}
