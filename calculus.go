@@ -212,6 +212,11 @@ func integrate(e Expr, name string, v Expr) Expr {
 			return r
 		}
 	case *fn:
+		if x.name == "sqrt" {
+			// Rewrite sqrt(u) as u^(1/2) so the power rule integrates it, e.g.
+			// ∫sqrt(x) dx = (2/3)*x^(3/2).
+			return integrate(Pow(x.arg, Rat(1, 2)), name, v)
+		}
 		if r := integrateFn(x, name, v); r != nil {
 			return r
 		}
@@ -230,21 +235,27 @@ func integrate(e Expr, name string, v Expr) Expr {
 }
 
 func integratePow(p *power, name string, v Expr) Expr {
-	n, ok := p.exp.(*Integer)
-	if !ok || containsSym(p.exp, name) {
+	// The exponent must be numeric (integer or rational) and free of the
+	// integration variable. The power rule then applies for any such exponent,
+	// so this handles fractional powers like x^(1/2) as well as integer ones.
+	if containsSym(p.exp, name) {
+		return nil
+	}
+	n, ok := toRat(p.exp)
+	if !ok {
 		return nil
 	}
 	a, _, ok := linearCoeffs(p.base, name, v)
 	if !ok {
 		return nil
 	}
-	if n.Val.Cmp(big.NewInt(-1)) == 0 {
+	if n.Cmp(big.NewRat(-1, 1)) == 0 {
 		// integral of (a*v+b)^-1 dv = log(a*v+b)/a.
 		return Mul(Log(p.base), Pow(a, Int(-1)))
 	}
-	np1 := new(big.Int).Add(n.Val, big.NewInt(1)) // n+1
+	np1 := new(big.Rat).Add(n, big.NewRat(1, 1)) // n+1
 	// integral of (a*v+b)^n dv = (a*v+b)^(n+1) / (a*(n+1)).
-	return Mul(Pow(p.base, newInteger(np1)), Pow(Mul(a, newInteger(np1)), Int(-1)))
+	return Mul(Pow(p.base, newRational(np1)), Pow(Mul(a, newRational(np1)), Int(-1)))
 }
 
 func integrateFn(f *fn, name string, v Expr) Expr {
