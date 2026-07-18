@@ -115,10 +115,10 @@ func ProportionConfidenceInterval(successes, n int, level float64) (lo, hi float
 // statistics, and Lo and Hi are the endpoints of the percentile confidence
 // interval.
 type BootstrapResult struct {
-	Estimate float64
-	StdErr   float64
-	Lo       float64
-	Hi       float64
+	Estimate float64 // Estimate is the statistic on the original sample.
+	StdErr   float64 // StdErr is the bootstrap standard error.
+	Lo       float64 // Lo is the lower confidence-interval bound.
+	Hi       float64 // Hi is the upper confidence-interval bound.
 }
 
 // Bootstrap performs a nonparametric bootstrap of the statistic stat over xs. It

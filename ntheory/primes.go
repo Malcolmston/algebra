@@ -167,8 +167,8 @@ func Factorize(n int64) map[int64]int {
 
 // PrimePower pairs a prime with its exponent in a factorization.
 type PrimePower struct {
-	Prime    int64
-	Exponent int
+	Prime    int64 // Prime is the prime base.
+	Exponent int   // Exponent is the power to which Prime is raised.
 }
 
 // FactorList returns the prime factorization of |n| as a slice of

@@ -13,9 +13,9 @@ import (
 // under the null hypothesis. Degenerate inputs yield a result whose fields are
 // all NaN.
 type TestResult struct {
-	Statistic float64
-	DF        float64
-	PValue    float64
+	Statistic float64 // Statistic is the computed test statistic.
+	DF        float64 // DF is the degrees of freedom, if applicable.
+	PValue    float64 // PValue is the resulting p-value.
 }
 
 // statsNaNResult returns a TestResult whose fields are all NaN, used to signal
