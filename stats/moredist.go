@@ -11,7 +11,7 @@ import "math"
 // (0, 1]. Its support is the integers k = 1, 2, 3, … (the "shifted" or trials
 // parameterization used by SciPy's geom).
 type Geometric struct {
-	P float64
+	P float64 // P is the per-trial success probability in (0, 1].
 }
 
 // PMF returns the probability mass P(X = k), the probability that the first
@@ -58,8 +58,8 @@ func (g Geometric) Variance() float64 { return (1 - g.P) / (g.P * g.P) }
 // (the failures parameterization used by SciPy's nbinom). R may be any positive
 // real number.
 type NegativeBinomial struct {
-	R float64
-	P float64
+	R float64 // R is the target number of successes (> 0).
+	P float64 // P is the per-trial success probability in (0, 1].
 }
 
 // PMF returns the probability mass P(X = k), the probability of exactly k

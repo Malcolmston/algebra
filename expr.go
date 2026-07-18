@@ -51,32 +51,32 @@ func (b builders) Subs(sym, val Expr) Expr { return Subs(b.self, sym, val) }
 // Symbol is a named variable such as x or y.
 type Symbol struct {
 	builders
-	Name string
+	Name string // Name is the identifier text, such as "x".
 }
 
 // Integer is an arbitrary-precision integer.
 type Integer struct {
 	builders
-	Val *big.Int
+	Val *big.Int // Val is the integer value.
 }
 
 // Rational is an exact fraction whose reduced denominator is greater than one.
 // Fractions that reduce to whole numbers are represented as [Integer] instead.
 type Rational struct {
 	builders
-	Val *big.Rat
+	Val *big.Rat // Val is the exact reduced fraction.
 }
 
 // Float is an inexact floating-point literal.
 type Float struct {
 	builders
-	Val float64
+	Val float64 // Val is the floating-point value.
 }
 
 // Constant is a named mathematical constant such as pi or E.
 type Constant struct {
 	builders
-	Name string
+	Name string // Name is the constant's symbol, such as "pi".
 	num  float64
 }
 

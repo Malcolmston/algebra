@@ -5,6 +5,30 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-07-18
+### Changed
+- Integrated the parallel `matrix`, `ntheory`, `stats` and `physics` additions
+  into a single building, vetting, linting and testing tree.
+- Completed API documentation: every exported symbol across all packages —
+  including previously undocumented distribution and result struct fields
+  (`Normal`, `Binomial`, `Beta`, `FDist`, `Weibull`, `Hypergeometric`,
+  `TestResult`, `BootstrapResult`, `ODEError.Reason`, and the CAS expression
+  fields) — now carries a doc comment (100% godoc).
+
+### Fixed
+- **physics**: corrected two new tests that encoded wrong expected values —
+  `MagneticFieldStraightWire` is now checked against the package's CODATA
+  vacuum permeability (μ0/2π ≈ 2.0000000011×10⁻⁷) rather than the pre-2019
+  exact 2×10⁻⁷, and `VelocityFromDistance(0,2,8)` now expects √32 = 4√2 for
+  v = √(v0²+2ad).
+- **staticcheck** cleanups so `golangci-lint run ./...` passes with zero issues:
+  renamed unexported error vars to the `errFoo` form (`errQRNoConverge`,
+  `errEmptyNetwork`, `errZeroElement`), replaced the deprecated `doc.Synopsis`
+  in the docs generator with `Package.Synopsis`, escaped the invisible MathML
+  operators in `latex.go` as `⁡`/`⁢`, used `copy` in
+  `Vector.RowMatrix`, converted `LogNormal` to `Normal` via a type conversion,
+  and made the Pollard-Brent determinism test compare two distinct evaluations.
+
 ## [0.4.0] - 2026-07-18
 ### Added
 - **matrix** sub-package: dense linear-algebra expansion — LU/QR/Cholesky and

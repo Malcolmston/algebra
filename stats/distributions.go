@@ -5,8 +5,8 @@ import "math"
 // Normal is a normal (Gaussian) distribution with mean Mu and standard
 // deviation Sigma. Sigma must be positive.
 type Normal struct {
-	Mu    float64
-	Sigma float64
+	Mu    float64 // Mu is the mean.
+	Sigma float64 // Sigma is the standard deviation (> 0).
 }
 
 // PDF returns the probability density at x.
@@ -50,8 +50,8 @@ func NormalCDF(x, mu, sigma float64) float64 {
 // independent trials, each succeeding with probability P. N must be >= 0 and
 // P must lie in [0, 1].
 type Binomial struct {
-	N int
-	P float64
+	N int     // N is the number of independent trials (>= 0).
+	P float64 // P is the per-trial success probability in [0, 1].
 }
 
 // PMF returns the probability mass P(X = k), the probability of exactly k
@@ -102,7 +102,7 @@ func (b Binomial) Variance() float64 { return float64(b.N) * b.P * (1 - b.P) }
 // of events in a fixed interval when events occur independently at a constant
 // average rate.
 type Poisson struct {
-	Lambda float64
+	Lambda float64 // Lambda is the rate parameter (> 0).
 }
 
 // PMF returns the probability mass P(X = k). It is 0 for negative k.
@@ -135,8 +135,8 @@ func (p Poisson) Variance() float64 { return p.Lambda }
 // Uniform is a continuous uniform distribution on the closed interval [A, B]
 // with A < B.
 type Uniform struct {
-	A float64
-	B float64
+	A float64 // A is the lower bound of the support.
+	B float64 // B is the upper bound of the support (A < B).
 }
 
 // PDF returns the probability density at x: 1/(B-A) inside [A, B] and 0
@@ -180,7 +180,7 @@ func (u Uniform) Variance() float64 {
 // Exponential is an exponential distribution with rate parameter Lambda > 0,
 // modelling the waiting time between events in a Poisson process.
 type Exponential struct {
-	Lambda float64
+	Lambda float64 // Lambda is the rate parameter (> 0).
 }
 
 // PDF returns the probability density at x. It is 0 for x < 0.
@@ -215,7 +215,7 @@ func (e Exponential) Variance() float64 { return 1 / (e.Lambda * e.Lambda) }
 
 // StudentT is a Student's t distribution with Nu degrees of freedom (Nu > 0).
 type StudentT struct {
-	Nu float64
+	Nu float64 // Nu is the degrees of freedom (> 0).
 }
 
 // PDF returns the probability density at x.
@@ -259,7 +259,7 @@ func (t StudentT) Variance() float64 {
 
 // ChiSquared is a chi-squared distribution with K degrees of freedom (K > 0).
 type ChiSquared struct {
-	K float64
+	K float64 // K is the degrees of freedom (> 0).
 }
 
 // PDF returns the probability density at x. It is 0 for x < 0.
@@ -300,8 +300,8 @@ func (c ChiSquared) Variance() float64 { return 2 * c.K }
 // (θ, > 0). With this parameterization the mean is Shape·Scale. A rate
 // parameter λ corresponds to Scale = 1/λ.
 type Gamma struct {
-	Shape float64
-	Scale float64
+	Shape float64 // Shape is the shape parameter k (> 0).
+	Scale float64 // Scale is the scale parameter theta (> 0).
 }
 
 // PDF returns the probability density at x. It is 0 for x < 0.

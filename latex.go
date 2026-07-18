@@ -774,7 +774,7 @@ func MathML(e Expr) string {
 
 // mmlInvTimes is the invisible-times operator inserted between juxtaposed
 // factors.
-const mmlInvTimes = "<mo>⁢</mo>"
+const mmlInvTimes = "<mo>\u2062</mo>"
 
 // mmlOf renders e as presentation MathML without the enclosing <math> element.
 func mmlOf(e Expr) string {
@@ -803,7 +803,7 @@ func mmlOf(e Expr) string {
 	case *fn:
 		return mmlFn(x)
 	case *fn2:
-		return "<mrow><mi>" + x.name + "</mi><mo>⁡</mo><mrow><mo>(</mo>" +
+		return "<mrow><mi>" + x.name + "</mi><mo>\u2061</mo><mrow><mo>(</mo>" +
 			mmlOf(x.arg1) + "<mo>,</mo>" + mmlOf(x.arg2) + "<mo>)</mo></mrow></mrow>"
 	case *integral:
 		return "<mrow><mo>∫</mo>" + mmlOf(x.arg) + "<mo>d</mo>" + mmlOf(x.v) + "</mrow>"
@@ -972,7 +972,7 @@ func mmlFn(f *fn) string {
 	case "digamma":
 		name = "ψ"
 	}
-	return "<mrow><mi>" + name + "</mi><mo>⁡</mo><mrow><mo>(</mo>" + arg + "<mo>)</mo></mrow></mrow>"
+	return "<mrow><mi>" + name + "</mi><mo>\u2061</mo><mrow><mo>(</mo>" + arg + "<mo>)</mo></mrow></mrow>"
 }
 
 // mmlBigOp renders a summation, product or limit.

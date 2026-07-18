@@ -6,11 +6,11 @@ import (
 	"sort"
 )
 
-// matrixErrQRNoConverge reports that the Francis double-shift QR iteration used
+// errQRNoConverge reports that the Francis double-shift QR iteration used
 // by [Matrix.EigenvaluesNumeric] failed to isolate an eigenvalue within the
 // fixed iteration cap. It should not occur for well-formed real inputs and is
 // returned rather than panicking so callers can react.
-var matrixErrQRNoConverge = errors.New("matrix: QR iteration did not converge")
+var errQRNoConverge = errors.New("matrix: QR iteration did not converge")
 
 // Fixed, reproducible tuning constants for the numeric eigen routines. They are
 // deliberately hard-coded (rather than derived from the input) so that repeated
@@ -356,7 +356,7 @@ func matrixHessenberg(a []float64, n, stride int, ort []float64) {
 // real and imaginary parts of every eigenvalue into wr and wi. The buffer is
 // consumed in place. Exceptional shifts are injected at fixed iteration counts
 // and the per-eigenvalue iteration count is capped at matrixQRMaxIter, returning
-// matrixErrQRNoConverge if the cap is reached.
+// errQRNoConverge if the cap is reached.
 func matrixHQR(a []float64, n, stride int, wr, wi []float64) error {
 	idx := func(i, j int) int { return i*stride + j }
 
@@ -418,7 +418,7 @@ func matrixHQR(a []float64, n, stride int, wr, wi []float64) error {
 					nn -= 2
 				} else {
 					if its == matrixQRMaxIter {
-						return matrixErrQRNoConverge
+						return errQRNoConverge
 					}
 					if its == 10 || its == 20 {
 						t += x

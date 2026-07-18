@@ -57,8 +57,8 @@ func statsBisectCDFFDist(f FDist, p float64) float64 {
 // binomial success probability and, more generally, models a bounded quantity
 // whose two shape parameters trade probability mass between the endpoints.
 type Beta struct {
-	Alpha float64
-	Beta  float64
+	Alpha float64 // Alpha is the first shape parameter (> 0).
+	Beta  float64 // Beta is the second shape parameter (> 0).
 }
 
 // PDF returns the probability density at x. It is 0 outside [0, 1] and NaN when
@@ -149,8 +149,8 @@ func (b Beta) Variance() float64 {
 // of freedom. It is the null distribution of the variance ratio in an analysis
 // of variance.
 type FDist struct {
-	D1 float64
-	D2 float64
+	D1 float64 // D1 is the numerator degrees of freedom (> 0).
+	D2 float64 // D2 is the denominator degrees of freedom (> 0).
 }
 
 // PDF returns the probability density at x. It is 0 for x < 0 and NaN when
@@ -246,8 +246,8 @@ func (f FDist) Variance() float64 {
 // (Sigma > 0). Mu and Sigma are the parameters of that underlying normal, not
 // the mean and standard deviation of the log-normal variable itself.
 type LogNormal struct {
-	Mu    float64
-	Sigma float64
+	Mu    float64 // Mu is the mean of the underlying normal (of ln X).
+	Sigma float64 // Sigma is the standard deviation of ln X (> 0).
 }
 
 // PDF returns the probability density at x, computed as the underlying normal
@@ -260,7 +260,7 @@ func (l LogNormal) PDF(x float64) float64 {
 	if x <= 0 {
 		return 0
 	}
-	return Normal{Mu: l.Mu, Sigma: l.Sigma}.PDF(math.Log(x)) / x
+	return Normal(l).PDF(math.Log(x)) / x
 }
 
 // CDF returns the cumulative probability P(X <= x), the underlying normal CDF
@@ -272,7 +272,7 @@ func (l LogNormal) CDF(x float64) float64 {
 	if x <= 0 {
 		return 0
 	}
-	return Normal{Mu: l.Mu, Sigma: l.Sigma}.CDF(math.Log(x))
+	return Normal(l).CDF(math.Log(x))
 }
 
 // Quantile returns the inverse CDF for p in [0, 1], exp(Mu + Sigma·Φ⁻¹(p)) where
@@ -308,8 +308,8 @@ func (l LogNormal) Variance() float64 {
 // distribution with rate 1/Scale; it is widely used in reliability and
 // survival analysis.
 type Weibull struct {
-	Shape float64
-	Scale float64
+	Shape float64 // Shape is the shape parameter k (> 0).
+	Scale float64 // Scale is the scale parameter lambda (> 0).
 }
 
 // PDF returns the probability density at x,

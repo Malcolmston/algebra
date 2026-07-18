@@ -20,7 +20,7 @@ import "math"
 // number of failures preceding the first success). This convention is what
 // makes its mean (1-P)/P rather than 1/P.
 type GeometricFailures struct {
-	P float64
+	P float64 // P is the per-trial success probability in (0, 1].
 }
 
 // valid reports whether the parameter P lies in the admissible range (0, 1].
@@ -103,8 +103,8 @@ func (g GeometricFailures) Variance() float64 {
 // sequence of independent Bernoulli trials (the "failures" parameterization
 // used by SciPy's nbinom). With R = 1 it reduces to GeometricFailures.
 type NegativeBinomialInt struct {
-	R int
-	P float64
+	R int     // R is the target number of successes (>= 1).
+	P float64 // P is the per-trial success probability in (0, 1].
 }
 
 // valid reports whether the parameters satisfy R >= 1 and P in (0, 1].
@@ -214,9 +214,9 @@ func (nb NegativeBinomialInt) Variance() float64 {
 // 0 <= Draws <= N. Its support is the integers max(0, Draws-(N-K)) <= k <=
 // min(K, Draws).
 type Hypergeometric struct {
-	N     int
-	K     int
-	Draws int
+	N     int // N is the population size.
+	K     int // K is the number of successes in the population.
+	Draws int // Draws is the number of items drawn without replacement.
 }
 
 // valid reports whether the parameters satisfy N >= 1, 0 <= K <= N and

@@ -102,9 +102,7 @@ func (v *Vector) ColMatrix() *Matrix {
 // RowMatrix returns the vector as a 1×n row matrix.
 func (v *Vector) RowMatrix() *Matrix {
 	m := New(1, len(v.data))
-	for i, e := range v.data {
-		m.data[0][i] = e
-	}
+	copy(m.data[0], v.data)
 	return m
 }
 

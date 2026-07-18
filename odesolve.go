@@ -28,7 +28,9 @@ type ODESolution struct {
 
 // ODEError reports that no implemented method could solve the differential
 // equation, or that its inputs were malformed.
-type ODEError struct{ Reason string }
+type ODEError struct {
+	Reason string // Reason is the human-readable failure description.
+}
 
 // Error returns the human-readable reason the ODE could not be solved.
 func (e *ODEError) Error() string { return "algebra: " + e.Reason }

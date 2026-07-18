@@ -121,8 +121,10 @@ func TestPollardBrentU64(t *testing.T) {
 
 func TestPollardBrentU64Deterministic(t *testing.T) {
 	const n = uint64(4294967291) * uint64(4294967279)
-	if PollardBrentU64(n) != PollardBrentU64(n) {
-		t.Errorf("PollardBrentU64(%d) is not deterministic", n)
+	first := PollardBrentU64(n)
+	second := PollardBrentU64(n)
+	if first != second {
+		t.Errorf("PollardBrentU64(%d) is not deterministic: %d != %d", n, first, second)
 	}
 }
 
