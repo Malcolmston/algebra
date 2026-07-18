@@ -5,6 +5,43 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-07-18
+### Added
+- Seven new sub-packages, each covering a numerical-mathematics domain with the
+  Go standard library only:
+  - **special** — Bessel (J/Y/I/K, spherical, Kelvin, Struve), Airy, elliptic
+    integrals, the error-function and Fresnel family, exponential/sine/cosine
+    integrals, the zeta family, Lambert W, polylogarithms and the gamma family.
+  - **orthopoly** — the classical orthogonal polynomials (Legendre, Chebyshev,
+    Hermite, Laguerre, Gegenbauer, Jacobi) together with their derivatives,
+    norms and the associated Gauss quadrature rules.
+  - **combin** — combinatorial counting (factorials, binomials, Stirling,
+    Bell, Catalan, partitions) plus enumerators for permutations, combinations
+    and related sequences.
+  - **numint** — one- and multi-dimensional numerical integration (adaptive,
+    Gauss, Romberg, Monte Carlo and cubature rules).
+  - **optimize** — unconstrained minimizers, numeric gradients/Hessians/
+    Jacobians and a suite of one-dimensional root finders (Newton, Halley,
+    Schröder, Steffensen and more).
+  - **interp** — polynomial and spline interpolation.
+  - **geom2d** — planar geometric primitives and shapes.
+
+### Fixed
+- Reconciled the duplicated exported symbols and shared helpers that the two
+  parallel authors of each new package had defined twice, keeping a single
+  complete implementation of each so the whole module builds, vets and tests
+  cleanly.
+- **special**: `specialEulerGamma` and the Bessel/Airy routines are now declared
+  once (in `bessel.go`); `integrals.go` retains only the unique `BesselJ/Y/I/K`
+  order-n wrappers and the four-value `Airy` function.
+- **optimize**: `NumericHessian` now computes correct diagonal second
+  derivatives (the mixed stencil previously collapsed to zero on the diagonal),
+  and `Schroeder` recognises convergence at a multiple root instead of failing
+  with a zero-derivative error.
+- **orthopoly**: corrected the `GegenbauerDerivative` expectation (d/dx C₂¹ =
+  8x, so 4 at x = ½) and added the missing Gauss–Laguerre weight assertions.
+- **geom2d**: resolved the clashing `pointApprox` test helpers.
+
 ## [0.5.0] - 2026-07-18
 ### Changed
 - Integrated the parallel `matrix`, `ntheory`, `stats` and `physics` additions
