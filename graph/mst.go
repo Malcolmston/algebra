@@ -123,7 +123,12 @@ type graphPrimItem struct {
 // ties by (to, from) for determinism.
 type graphPrimPQ []graphPrimItem
 
+// Len reports the number of items in the queue, implementing heap.Interface.
 func (pq graphPrimPQ) Len() int { return len(pq) }
+
+// Less reports whether item i orders before item j, implementing heap.Interface.
+// Items are ordered by ascending weight, breaking ties by ascending to and then
+// ascending from vertex.
 func (pq graphPrimPQ) Less(i, j int) bool {
 	if pq[i].weight != pq[j].weight {
 		return pq[i].weight < pq[j].weight
@@ -133,8 +138,14 @@ func (pq graphPrimPQ) Less(i, j int) bool {
 	}
 	return pq[i].from < pq[j].from
 }
+
+// Swap exchanges items i and j, implementing heap.Interface.
 func (pq graphPrimPQ) Swap(i, j int) { pq[i], pq[j] = pq[j], pq[i] }
-func (pq *graphPrimPQ) Push(x any)   { *pq = append(*pq, x.(graphPrimItem)) }
+
+// Push appends x to the queue, implementing heap.Interface.
+func (pq *graphPrimPQ) Push(x any) { *pq = append(*pq, x.(graphPrimItem)) }
+
+// Pop removes and returns the last item of the queue, implementing heap.Interface.
 func (pq *graphPrimPQ) Pop() any {
 	old := *pq
 	n := len(old)
