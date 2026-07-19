@@ -16,15 +16,26 @@ type graphPQItem struct {
 // ascending vertex identifier for determinism.
 type graphPQ []graphPQItem
 
+// Len reports the number of items in the queue, implementing heap.Interface.
 func (pq graphPQ) Len() int { return len(pq) }
+
+// Less reports whether item i orders before item j, implementing heap.Interface.
+// Items are ordered by ascending priority, breaking ties by ascending vertex
+// identifier.
 func (pq graphPQ) Less(i, j int) bool {
 	if pq[i].priority != pq[j].priority {
 		return pq[i].priority < pq[j].priority
 	}
 	return pq[i].vertex < pq[j].vertex
 }
+
+// Swap exchanges items i and j, implementing heap.Interface.
 func (pq graphPQ) Swap(i, j int) { pq[i], pq[j] = pq[j], pq[i] }
-func (pq *graphPQ) Push(x any)   { *pq = append(*pq, x.(graphPQItem)) }
+
+// Push appends x to the queue, implementing heap.Interface.
+func (pq *graphPQ) Push(x any) { *pq = append(*pq, x.(graphPQItem)) }
+
+// Pop removes and returns the last item of the queue, implementing heap.Interface.
 func (pq *graphPQ) Pop() any {
 	old := *pq
 	n := len(old)

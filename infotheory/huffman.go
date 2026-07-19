@@ -38,17 +38,28 @@ type infotheoryHuffItem struct {
 
 type infotheoryHuffHeap []infotheoryHuffItem
 
+// Len reports the number of items in the heap, implementing heap.Interface.
 func (h infotheoryHuffHeap) Len() int { return len(h) }
+
+// Less reports whether item i orders before item j, implementing heap.Interface.
+// Items are ordered by ascending node weight, breaking ties by ascending
+// insertion order.
 func (h infotheoryHuffHeap) Less(i, j int) bool {
 	if h[i].node.Weight != h[j].node.Weight {
 		return h[i].node.Weight < h[j].node.Weight
 	}
 	return h[i].order < h[j].order
 }
+
+// Swap exchanges items i and j, implementing heap.Interface.
 func (h infotheoryHuffHeap) Swap(i, j int) { h[i], h[j] = h[j], h[i] }
+
+// Push appends x to the heap, implementing heap.Interface.
 func (h *infotheoryHuffHeap) Push(x any) {
 	*h = append(*h, x.(infotheoryHuffItem))
 }
+
+// Pop removes and returns the last item of the heap, implementing heap.Interface.
 func (h *infotheoryHuffHeap) Pop() any {
 	old := *h
 	n := len(old)

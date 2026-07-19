@@ -1260,8 +1260,15 @@ type optimizesimplexSorter struct {
 	fs  []float64
 }
 
-func (s optimizesimplexSorter) Len() int           { return len(s.fs) }
+// Len reports the number of vertices to sort, implementing sort.Interface.
+func (s optimizesimplexSorter) Len() int { return len(s.fs) }
+
+// Less reports whether vertex i has a smaller objective value than vertex j,
+// implementing sort.Interface.
 func (s optimizesimplexSorter) Less(i, j int) bool { return s.fs[i] < s.fs[j] }
+
+// Swap exchanges vertices i and j together with their objective values,
+// implementing sort.Interface.
 func (s optimizesimplexSorter) Swap(i, j int) {
 	s.fs[i], s.fs[j] = s.fs[j], s.fs[i]
 	s.pts[i], s.pts[j] = s.pts[j], s.pts[i]
