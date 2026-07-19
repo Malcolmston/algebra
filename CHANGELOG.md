@@ -5,6 +5,23 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-07-19
+### Added
+- **60 new standard-library-only mathematics sub-packages** (waves 3–8), taking the
+  library to **101 sub-packages** and **~17,000 exported functions and methods**:
+  codingtheory, tropical, liealgebra, contfrac, quadrature, timeseries, markov,
+  clustering, reliability, geodesy, automata, galois, splines, polyhedra, queueing,
+  bayesian, graphspectral, rootfind, calendrical, knottheory, exterioralgebra,
+  lattices, bigfloat, quasirandom, satsolver, simplicial, voronoi, socialchoice,
+  cellular, approxtheory, odesolvers, metaheuristics, networkflow, projectivegeom,
+  stochastic, analyticnt, auctions, tensornetwork, tilings, fuzzy, groebner,
+  grouprep, spectralpde, optimalcontrol, infogeom, matroids, packing, proofsystems,
+  chaos, meshgen, operatortheory, padic, ellipticcurves, diffalgebra, designs,
+  hull3d, fem, randommatrix, gaussproc, modelchecking — each with table-driven
+  tests and runnable examples.
+- **Upstream-parity tests** against sympy/sympy vectors (`TestParity*`) with a
+  published `parity.json`; 100% exported-symbol API-doc coverage.
+
 ## [0.7.0] - 2026-07-18
 ### Added
 - **Step-by-step solver** in the root package: `Step` and `Solution` types and
