@@ -11,7 +11,7 @@
 [![Code Size](https://img.shields.io/github/languages/code-size/malcolmston/algebra)](https://github.com/malcolmston/algebra)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![Docs](https://img.shields.io/badge/docs-pages-2f9bff)](https://malcolmston.github.io/algebra/)
+[![Docs](https://img.shields.io/badge/docs-vercel-2f9bff)](https://go-malcolms-projects-18e573c3.vercel.app/lib/algebra)
 
 A standard-library-only Go port of SymPy — symbolic mathematics: build,
 simplify, differentiate, integrate, and solve algebraic expressions.
@@ -136,7 +136,7 @@ answer. Concretely, as reported by the core:
 ## Documentation
 
 - Full API reference on [pkg.go.dev](https://pkg.go.dev/github.com/malcolmston/algebra).
-- Docs site: <https://malcolmston.github.io/algebra/>.
+- Docs site: <https://go-malcolms-projects-18e573c3.vercel.app/lib/algebra>.
 
 ## License
 
